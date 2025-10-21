@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dracula">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CasDash - Ultimate Self-Hosted Service Dashboard">
+    <meta name="author" content="CasApps">
+
+    <title>{{block "title" .}}CasDash{{end}}</title>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/css/style.css" as="style">
+    <link rel="preload" href="/static/js/app.js" as="script">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    <link rel="manifest" href="/static/manifest.json">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- Web App Manifest -->
+    <meta name="theme-color" content="#282a36">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    {{block "head" .}}{{end}}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button class="menu-toggle">☰</button>
+                    <a href="/" class="navbar-brand">CasDash</a>
+                </div>
+
+                <div class="navbar-nav hidden md:flex">
+                    {{if .User}}
+                        <a href="/dashboard" class="nav-link">Dashboard</a>
+                        <a href="/services" class="nav-link">Services</a>
+                        <a href="/monitoring" class="nav-link">Monitoring</a>
+                        {{if .User.IsAdmin}}
+                            <a href="/admin" class="nav-link">Admin</a>
+                        {{end}}
+                        <div class="relative">
+                            <button class="nav-link" onclick="toggleUserMenu()">
+                                {{.User.Username}} ▼
+                            </button>
+                            <div id="userMenu" class="hidden absolute right-0 mt-2 bg-background border border-gray-600 rounded-lg shadow-lg">
+                                <a href="/profile" class="block px-4 py-2 hover:bg-gray-700">Profile</a>
+                                <a href="/preferences" class="block px-4 py-2 hover:bg-gray-700">Preferences</a>
+                                <hr class="border-gray-600">
+                                <form method="POST" action="/logout" class="block">
+                                    <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-700">Logout</button>
+                                </form>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="btn btn-primary">Login</a>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar (Mobile) -->
+    {{if .User}}
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="/dashboard" class="{{if eq .ActivePage "dashboard"}}active{{end}}">
+                    📊 Dashboard
+                </a></li>
+                <li><a href="/services" class="{{if eq .ActivePage "services"}}active{{end}}">
+                    🔧 Services
+                </a></li>
+                <li><a href="/monitoring" class="{{if eq .ActivePage "monitoring"}}active{{end}}">
+                    📈 Monitoring
+                </a></li>
+                <li><a href="/security" class="{{if eq .ActivePage "security"}}active{{end}}">
+                    🔒 Security
+                </a></li>
+                <li><a href="/certificates" class="{{if eq .ActivePage "certificates"}}active{{end}}">
+                    🔐 SSL Certificates
+                </a></li>
+                <li><a href="/updates" class="{{if eq .ActivePage "updates"}}active{{end}}">
+                    🔄 Updates
+                </a></li>
+                <li><a href="/support" class="{{if eq .ActivePage "support"}}active{{end}}">
+                    💬 Support
+                </a></li>
+                <li><a href="/maintenance" class="{{if eq .ActivePage "maintenance"}}active{{end}}">
+                    🔧 Maintenance
+                </a></li>
+                {{if .User.IsAdmin}}
+                <li><hr class="border-gray-600 my-2"></li>
+                <li><a href="/users" class="{{if eq .ActivePage "users"}}active{{end}}">
+                    👥 Users
+                </a></li>
+                <li><a href="/admin" class="{{if eq .ActivePage "admin"}}active{{end}}">
+                    ⚙️ Admin
+                </a></li>
+                {{end}}
+                <li><hr class="border-gray-600 my-2"></li>
+                <li><a href="/profile" class="{{if eq .ActivePage "profile"}}active{{end}}">
+                    👤 Profile
+                </a></li>
+                <li><a href="/preferences" class="{{if eq .ActivePage "preferences"}}active{{end}}">
+                    🎨 Preferences
+                </a></li>
+            </ul>
+        </nav>
+    </aside>
+    {{end}}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {{if .Flash}}
+            <div class="container mt-4">
+                {{range .Flash}}
+                    <div class="toast toast-{{.Type}} show mb-4">
+                        {{.Message}}
+                    </div>
+                {{end}}
+            </div>
+        {{end}}
+
+        {{block "content" .}}{{end}}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="text-sm text-muted">
+                    Generated in {{.ExecutionTime}}ms |
+                    Powered by <a href="https://github.com/casapps/casdash" target="_blank">CasDash</a> |
+                    v{{.Version}}
+                </div>
+                <div class="text-sm text-muted">
+                    {{if .User}}
+                        Mode: {{.Mode}} | {{.User.Username}}
+                    {{else}}
+                        Mode: {{.Mode}}
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+
+    <script>
+        // Toggle user menu
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('userMenu');
+            const button = e.target.closest('[onclick="toggleUserMenu()"]');
+
+            if (!button && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Apply saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dracula';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    {{block "scripts" .}}{{end}}
+</body>
+</html>

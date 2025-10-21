@@ -1,0 +1,250 @@
+{{define "title"}}Register - CasDash{{end}}
+
+{{define "content"}}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-primary mb-2">CasDash</h1>
+            <p class="text-muted">Create your account</p>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="card">
+            {{if .Error}}
+            <div class="bg-error bg-opacity-20 border border-error rounded-lg p-4 mb-6">
+                <p class="text-error">{{.Error}}</p>
+            </div>
+            {{end}}
+
+            <form method="POST" action="/register" class="space-y-6" id="registerForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           class="form-input"
+                           placeholder="Choose a username"
+                           required
+                           minlength="3"
+                           maxlength="50"
+                           pattern="[a-zA-Z0-9_-]+"
+                           title="Username can only contain letters, numbers, underscores, and hyphens"
+                           autofocus>
+                    <small class="text-muted">3-50 characters, letters, numbers, _ and - only</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           class="form-input"
+                           placeholder="your@email.com"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-input"
+                           placeholder="Create a strong password"
+                           required
+                           minlength="12">
+                    <small class="text-muted">Minimum 12 characters</small>
+
+                    <!-- Password strength indicator -->
+                    <div class="mt-2">
+                        <div class="flex gap-1">
+                            <div id="strength-1" class="h-1 flex-1 bg-selection rounded"></div>
+                            <div id="strength-2" class="h-1 flex-1 bg-selection rounded"></div>
+                            <div id="strength-3" class="h-1 flex-1 bg-selection rounded"></div>
+                            <div id="strength-4" class="h-1 flex-1 bg-selection rounded"></div>
+                        </div>
+                        <small id="strength-text" class="text-muted">Password strength: Weak</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    <input type="password"
+                           id="confirm_password"
+                           name="confirm_password"
+                           class="form-input"
+                           placeholder="Re-enter your password"
+                           required>
+                    <small id="password-match" class="text-muted"></small>
+                </div>
+
+                <div class="flex items-start">
+                    <input type="checkbox"
+                           id="terms"
+                           name="terms"
+                           class="h-4 w-4 text-primary mt-1"
+                           required>
+                    <label for="terms" class="ml-2 text-sm text-foreground">
+                        I agree to the <a href="/terms" class="text-primary hover:text-secondary">Terms of Service</a>
+                        and <a href="/privacy" class="text-primary hover:text-secondary">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full" id="submitBtn">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-muted">
+                    Already have an account?
+                    <a href="/login" class="text-primary hover:text-secondary font-medium">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center mt-8 text-sm text-muted">
+            <p>CasDash v{{.Version}} - {{.Mode | title}} Mode</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #282a36 0%, #1a1d28 100%);
+    }
+
+    .min-h-screen {
+        min-height: 100vh;
+    }
+
+    .items-center {
+        align-items: center;
+    }
+
+    .items-start {
+        align-items: flex-start;
+    }
+
+    .justify-center {
+        justify-content: center;
+    }
+
+    .max-w-md {
+        max-width: 28rem;
+    }
+
+    .w-full {
+        width: 100%;
+    }
+
+    .space-y-6 > * + * {
+        margin-top: 1.5rem;
+    }
+
+    .flex-1 {
+        flex: 1;
+    }
+</style>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    // Password strength checker
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('confirm_password');
+    const strengthBars = [1, 2, 3, 4].map(i => document.getElementById(`strength-${i}`));
+    const strengthText = document.getElementById('strength-text');
+    const passwordMatch = document.getElementById('password-match');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        const checks = {
+            length: password.length >= 12,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[^A-Za-z0-9]/.test(password),
+        };
+
+        // Calculate strength
+        if (checks.length) strength++;
+        if (checks.lowercase) strength++;
+        if (checks.uppercase) strength++;
+        if (checks.number) strength++;
+        if (checks.special) strength++;
+
+        // Bonus for longer passwords
+        if (password.length >= 16) strength++;
+
+        return Math.min(4, Math.floor(strength * 4 / 6));
+    }
+
+    passwordField.addEventListener('input', function() {
+        const strength = checkPasswordStrength(this.value);
+        const colors = ['#ff5555', '#f1fa8c', '#8be9fd', '#50fa7b'];
+        const texts = ['Weak', 'Fair', 'Good', 'Strong'];
+
+        // Update strength bars
+        strengthBars.forEach((bar, index) => {
+            if (index < strength) {
+                bar.style.backgroundColor = colors[strength - 1];
+            } else {
+                bar.style.backgroundColor = '#44475a';
+            }
+        });
+
+        // Update text
+        if (this.value.length > 0) {
+            strengthText.textContent = `Password strength: ${texts[strength - 1] || 'Too Short'}`;
+            strengthText.style.color = colors[strength - 1] || '#ff5555';
+        } else {
+            strengthText.textContent = 'Password strength: Weak';
+            strengthText.style.color = '#6272a4';
+        }
+
+        // Check password match
+        checkPasswordMatch();
+    });
+
+    confirmField.addEventListener('input', checkPasswordMatch);
+
+    function checkPasswordMatch() {
+        if (confirmField.value.length === 0) {
+            passwordMatch.textContent = '';
+            return;
+        }
+
+        if (passwordField.value === confirmField.value) {
+            passwordMatch.textContent = '✓ Passwords match';
+            passwordMatch.style.color = '#50fa7b';
+        } else {
+            passwordMatch.textContent = '✗ Passwords do not match';
+            passwordMatch.style.color = '#ff5555';
+        }
+    }
+
+    // Form validation
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        if (passwordField.value !== confirmField.value) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+
+        if (passwordField.value.length < 12) {
+            e.preventDefault();
+            alert('Password must be at least 12 characters long!');
+            return false;
+        }
+
+        // Disable submit button to prevent double submission
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Account...';
+    });
+</script>
+{{end}}

@@ -1,0 +1,145 @@
+{{define "title"}}Login - CasDash{{end}}
+
+{{define "content"}}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-primary mb-2">CasDash</h1>
+            <p class="text-muted">Sign in to your account</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="card">
+            {{if .Error}}
+            <div class="bg-error bg-opacity-20 border border-error rounded-lg p-4 mb-6">
+                <p class="text-error">{{.Error}}</p>
+            </div>
+            {{end}}
+
+            <form method="POST" action="/login" class="space-y-6">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           class="form-input"
+                           placeholder="Enter your username"
+                           required
+                           autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-input"
+                           placeholder="Enter your password"
+                           required>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox"
+                               id="remember"
+                               name="remember"
+                               class="h-4 w-4 text-primary">
+                        <label for="remember" class="ml-2 text-sm text-foreground">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="/forgot-password" class="text-primary hover:text-secondary">
+                            Forgot password?
+                        </a>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    Sign In
+                </button>
+            </form>
+
+            {{if ne .Registration "disabled"}}
+            <div class="mt-6 text-center">
+                <p class="text-sm text-muted">
+                    Don't have an account?
+                    <a href="/register" class="text-primary hover:text-secondary font-medium">
+                        Sign up
+                    </a>
+                </p>
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center mt-8 text-sm text-muted">
+            <p>CasDash v{{.Version}} - {{.Mode | title}} Mode</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles for login page */
+    body {
+        background: linear-gradient(135deg, #282a36 0%, #1a1d28 100%);
+    }
+
+    .min-h-screen {
+        min-height: 100vh;
+    }
+
+    .items-center {
+        align-items: center;
+    }
+
+    .justify-center {
+        justify-content: center;
+    }
+
+    .max-w-md {
+        max-width: 28rem;
+    }
+
+    .w-full {
+        width: 100%;
+    }
+
+    .space-y-6 > * + * {
+        margin-top: 1.5rem;
+    }
+</style>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    // Auto-focus username field
+    document.addEventListener('DOMContentLoaded', function() {
+        const usernameField = document.getElementById('username');
+        if (usernameField) {
+            usernameField.focus();
+        }
+    });
+
+    // Remember me functionality
+    const rememberCheckbox = document.getElementById('remember');
+    const usernameField = document.getElementById('username');
+
+    // Load saved username
+    if (localStorage.getItem('remembered_username')) {
+        usernameField.value = localStorage.getItem('remembered_username');
+        rememberCheckbox.checked = true;
+    }
+
+    // Save username on form submit if remember is checked
+    document.querySelector('form').addEventListener('submit', function() {
+        if (rememberCheckbox.checked) {
+            localStorage.setItem('remembered_username', usernameField.value);
+        } else {
+            localStorage.removeItem('remembered_username');
+        }
+    });
+</script>
+{{end}}

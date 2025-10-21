@@ -1,0 +1,51 @@
+version: '3.8'
+
+# Development-specific compose file
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  casdash:
+    build:
+      target: builder  # Stop at builder stage for development
+    volumes:
+      - .:/app
+      - go_modules:/go/pkg/mod
+    environment:
+      - CASDASH_DEBUG=true
+      - CGO_ENABLED=1
+    command: |
+      sh -c "
+        echo 'Installing development dependencies...' &&
+        go mod tidy &&
+        echo 'Starting development server...' &&
+        go run main.go --debug
+      "
+    ports:
+      - "64321:64321"
+      - "2345:2345"  # Delve debugger port
+
+  # Hot reload development container
+  casdash-dev:
+    image: golang:1.21-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - go_modules:/go/pkg/mod
+    environment:
+      - CGO_ENABLED=1
+      - CASDASH_DEBUG=true
+    command: |
+      sh -c "
+        apk add --no-cache git gcc musl-dev sqlite-dev inotify-tools &&
+        go install github.com/cosmtrek/air@latest &&
+        air
+      "
+    ports:
+      - "64322:64321"
+    networks:
+      - casdash-network
+    profiles:
+      - hot-reload
+
+volumes:
+  go_modules:

@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+TODO.md
+docs/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+casdash
+dist/
+build/
+
+# Data directories
+data/
+*.db
+*.log
+
+# Dependencies
+node_modules/
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Temporary files
+tmp/
+temp/
+*.tmp

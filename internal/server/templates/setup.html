@@ -1,0 +1,307 @@
+{{define "title"}}Setup - CasDash{{end}}
+
+{{define "content"}}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl w-full">
+        <!-- Welcome Header -->
+        <div class="text-center mb-8">
+            <div class="text-6xl mb-4">🚀</div>
+            <h1 class="text-4xl font-bold text-primary mb-2">Welcome to CasDash</h1>
+            <p class="text-lg text-muted">Let's set up your dashboard in a few simple steps</p>
+        </div>
+
+        <!-- Setup Form -->
+        <div class="card">
+            {{if .Error}}
+            <div class="bg-error bg-opacity-20 border border-error rounded-lg p-4 mb-6">
+                <p class="text-error">{{.Error}}</p>
+            </div>
+            {{end}}
+
+            <!-- Setup Steps Indicator -->
+            <div class="mb-8">
+                <div class="flex items-center justify-center">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-background font-bold">
+                                1
+                            </div>
+                            <span class="ml-2 text-sm text-foreground">Create Admin</span>
+                        </div>
+                        <div class="w-16 h-1 bg-selection"></div>
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-selection rounded-full flex items-center justify-center text-muted">
+                                2
+                            </div>
+                            <span class="ml-2 text-sm text-muted">Configure</span>
+                        </div>
+                        <div class="w-16 h-1 bg-selection"></div>
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-selection rounded-full flex items-center justify-center text-muted">
+                                3
+                            </div>
+                            <span class="ml-2 text-sm text-muted">Discovery</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Information -->
+            <div class="bg-info bg-opacity-10 border border-info rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-info mb-2">🌐 Operating Mode: {{.Mode | title}}</h3>
+                {{if eq .Mode "enterprise"}}
+                <p class="text-sm text-foreground">
+                    Running in <strong>Enterprise Mode</strong> - Perfect for self-hosting, teams, and organizations.
+                    All users will share services with role-based permissions.
+                </p>
+                {{else}}
+                <p class="text-sm text-foreground">
+                    Running in <strong>SaaS Mode</strong> - Each user has their own isolated services.
+                    Perfect for service providers and multi-tenant deployments.
+                </p>
+                {{end}}
+            </div>
+
+            <!-- Admin Account Form -->
+            <h2 class="text-xl font-semibold mb-4">Create Primary Administrator Account</h2>
+            <p class="text-muted mb-6">
+                This account will have full access to all features and cannot be deleted or demoted.
+            </p>
+
+            <form method="POST" action="/setup" class="space-y-6" id="setupForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <span class="text-error">*</span> Username
+                    </label>
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           class="form-input"
+                           placeholder="admin"
+                           required
+                           minlength="3"
+                           maxlength="50"
+                           pattern="[a-zA-Z0-9_-]+"
+                           title="Username can only contain letters, numbers, underscores, and hyphens"
+                           autofocus>
+                    <small class="text-muted">This will be your permanent admin username</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <span class="text-error">*</span> Email Address
+                    </label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           class="form-input"
+                           placeholder="admin@example.com"
+                           required>
+                    <small class="text-muted">Used for notifications and account recovery</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <span class="text-error">*</span> Password
+                    </label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-input"
+                           placeholder="Create a strong password"
+                           required
+                           minlength="12">
+
+                    <!-- Password strength indicator -->
+                    <div class="mt-2">
+                        <div class="flex gap-1">
+                            <div id="strength-1" class="h-1 flex-1 bg-selection rounded"></div>
+                            <div id="strength-2" class="h-1 flex-1 bg-selection rounded"></div>
+                            <div id="strength-3" class="h-1 flex-1 bg-selection rounded"></div>
+                            <div id="strength-4" class="h-1 flex-1 bg-selection rounded"></div>
+                        </div>
+                        <small id="strength-text" class="text-muted">Minimum 12 characters required</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">
+                        <span class="text-error">*</span> Confirm Password
+                    </label>
+                    <input type="password"
+                           id="confirm_password"
+                           name="confirm_password"
+                           class="form-input"
+                           placeholder="Re-enter your password"
+                           required>
+                    <small id="password-match" class="text-muted"></small>
+                </div>
+
+                <!-- Important Notes -->
+                <div class="bg-warning bg-opacity-10 border border-warning rounded-lg p-4">
+                    <h4 class="font-semibold text-warning mb-2">⚠️ Important Notes</h4>
+                    <ul class="text-sm text-foreground space-y-1 list-disc list-inside">
+                        <li>Store these credentials safely - you'll need them to access CasDash</li>
+                        <li>The primary admin account cannot be deleted</li>
+                        <li>You can create additional users after setup</li>
+                        <li>Service discovery will start automatically after setup</li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full btn-lg" id="submitBtn">
+                    🚀 Complete Setup & Start Monitoring
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center mt-8 text-sm text-muted">
+            <p>CasDash v{{.Version}} - Setting up for the first time</p>
+            <p class="mt-2">
+                Need help? Check out the
+                <a href="https://docs.casdash.dev" target="_blank" class="text-primary hover:text-secondary">
+                    documentation
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #282a36 0%, #1a1d28 100%);
+    }
+
+    .min-h-screen {
+        min-height: 100vh;
+    }
+
+    .items-center {
+        align-items: center;
+    }
+
+    .justify-center {
+        justify-content: center;
+    }
+
+    .max-w-2xl {
+        max-width: 42rem;
+    }
+
+    .w-full {
+        width: 100%;
+    }
+
+    .space-y-6 > * + * {
+        margin-top: 1.5rem;
+    }
+
+    .space-x-4 > * + * {
+        margin-left: 1rem;
+    }
+
+    .flex-1 {
+        flex: 1;
+    }
+
+    .list-disc {
+        list-style-type: disc;
+    }
+
+    .list-inside {
+        list-style-position: inside;
+    }
+</style>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    // Password strength checker (same as register page)
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('confirm_password');
+    const strengthBars = [1, 2, 3, 4].map(i => document.getElementById(`strength-${i}`));
+    const strengthText = document.getElementById('strength-text');
+    const passwordMatch = document.getElementById('password-match');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        const checks = {
+            length: password.length >= 12,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[^A-Za-z0-9]/.test(password),
+        };
+
+        if (checks.length) strength++;
+        if (checks.lowercase) strength++;
+        if (checks.uppercase) strength++;
+        if (checks.number) strength++;
+        if (checks.special) strength++;
+        if (password.length >= 16) strength++;
+
+        return Math.min(4, Math.floor(strength * 4 / 6));
+    }
+
+    passwordField.addEventListener('input', function() {
+        const strength = checkPasswordStrength(this.value);
+        const colors = ['#ff5555', '#f1fa8c', '#8be9fd', '#50fa7b'];
+        const texts = ['Weak', 'Fair', 'Good', 'Strong'];
+
+        strengthBars.forEach((bar, index) => {
+            if (index < strength) {
+                bar.style.backgroundColor = colors[strength - 1];
+            } else {
+                bar.style.backgroundColor = '#44475a';
+            }
+        });
+
+        if (this.value.length > 0) {
+            strengthText.textContent = `Password strength: ${texts[strength - 1] || 'Too Short'}`;
+            strengthText.style.color = colors[strength - 1] || '#ff5555';
+        } else {
+            strengthText.textContent = 'Minimum 12 characters required';
+            strengthText.style.color = '#6272a4';
+        }
+
+        checkPasswordMatch();
+    });
+
+    confirmField.addEventListener('input', checkPasswordMatch);
+
+    function checkPasswordMatch() {
+        if (confirmField.value.length === 0) {
+            passwordMatch.textContent = '';
+            return;
+        }
+
+        if (passwordField.value === confirmField.value) {
+            passwordMatch.textContent = '✓ Passwords match';
+            passwordMatch.style.color = '#50fa7b';
+        } else {
+            passwordMatch.textContent = '✗ Passwords do not match';
+            passwordMatch.style.color = '#ff5555';
+        }
+    }
+
+    // Form validation
+    document.getElementById('setupForm').addEventListener('submit', function(e) {
+        if (passwordField.value !== confirmField.value) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+
+        if (passwordField.value.length < 12) {
+            e.preventDefault();
+            alert('Password must be at least 12 characters long!');
+            return false;
+        }
+
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Setting up CasDash...';
+    });
+</script>
+{{end}}

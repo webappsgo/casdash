@@ -1,0 +1,270 @@
+{{define "title"}}Dashboard - CasDash{{end}}
+
+{{define "content"}}
+<div class="container py-8">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Dashboard</h1>
+            <p class="text-muted">Monitor your services and infrastructure</p>
+        </div>
+        <div class="flex gap-4 mt-4 md:mt-0">
+            <a href="/services/add" class="btn btn-primary">Add Service</a>
+            <a href="/services/discover" class="btn btn-secondary">Discover Services</a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-2xl font-bold text-success">{{.Stats.TotalServices}}</div>
+                    <div class="text-sm text-muted">Total Services</div>
+                </div>
+                <div class="text-3xl">🔧</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-2xl font-bold text-success">{{.Stats.OnlineServices}}</div>
+                    <div class="text-sm text-muted">Online</div>
+                </div>
+                <div class="text-3xl">✅</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-2xl font-bold text-error">{{.Stats.OfflineServices}}</div>
+                    <div class="text-sm text-muted">Offline</div>
+                </div>
+                <div class="text-3xl">❌</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-2xl font-bold text-primary">{{printf "%.1f%%" .Stats.UptimePercentage}}</div>
+                    <div class="text-sm text-muted">Uptime</div>
+                </div>
+                <div class="text-3xl">📊</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="card mb-8">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <input type="text"
+                       class="search-input form-input"
+                       placeholder="Search services..."
+                       id="serviceSearch">
+            </div>
+            <div class="flex gap-2">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    {{range .Categories}}
+                        <option value="{{.}}">{{. | title}}</option>
+                    {{end}}
+                </select>
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                    <option value="warning">Warning</option>
+                    <option value="maintenance">Maintenance</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="servicesGrid">
+        {{range .Services}}
+        <div class="service-card card {{.Status}}"
+             data-service-id="{{.ID}}"
+             data-service-type="{{.ServiceType}}"
+             data-category="{{.Category}}">
+
+            <!-- Status Indicator -->
+            <div class="service-status status-{{.Status}}"></div>
+
+            <!-- Service Icon -->
+            <div class="service-icon">
+                {{if .Icon}}
+                    {{if hasPrefix .Icon "http"}}
+                        <img src="{{.Icon}}" alt="{{.Name}}" class="w-full h-full object-cover rounded">
+                    {{else}}
+                        {{.Icon | safeHTML}}
+                    {{end}}
+                {{else}}
+                    🔧
+                {{end}}
+            </div>
+
+            <!-- Service Info -->
+            <div class="mb-4">
+                <h3 class="service-name font-semibold text-lg mb-1">{{.Name}}</h3>
+                <a href="{{.URL}}"
+                   target="_blank"
+                   class="service-url text-sm text-muted hover:text-primary"
+                   onclick="event.stopPropagation()">
+                    {{.URL}}
+                </a>
+                {{if .Description}}
+                    <p class="text-sm text-muted mt-2">{{.Description}}</p>
+                {{end}}
+            </div>
+
+            <!-- Service Stats -->
+            <div class="flex items-center justify-between text-sm text-muted">
+                <span class="response-time">
+                    {{if .LastResponseTime}}{{.LastResponseTime}}ms{{else}}-{{end}}
+                </span>
+                <span class="last-checked" title="Last checked">
+                    {{if .LastChecked}}{{timeAgo .LastChecked}}{{else}}Never{{end}}
+                </span>
+            </div>
+
+            <!-- Service Actions -->
+            <div class="flex gap-2 mt-4">
+                <button class="btn btn-sm btn-secondary"
+                        onclick="event.stopPropagation(); casdash.checkService({{.ID}})">
+                    Check Now
+                </button>
+                <a href="/services/{{.ID}}"
+                   class="btn btn-sm btn-secondary"
+                   onclick="event.stopPropagation()">
+                    Details
+                </a>
+                {{if .MaintenanceMode}}
+                    <button class="btn btn-sm btn-warning"
+                            onclick="event.stopPropagation(); casdash.toggleMaintenance({{.ID}})">
+                        Exit Maintenance
+                    </button>
+                {{end}}
+            </div>
+
+            <!-- Maintenance Banner -->
+            {{if .MaintenanceMode}}
+                <div class="absolute top-0 left-0 right-0 bg-warning text-background text-center text-xs py-1 rounded-t-lg">
+                    MAINTENANCE MODE
+                </div>
+            {{end}}
+        </div>
+        {{else}}
+        <!-- No Services -->
+        <div class="col-span-full">
+            <div class="card text-center py-12">
+                <div class="text-6xl mb-4">🚀</div>
+                <h3 class="text-xl font-semibold mb-2">Get Started with CasDash</h3>
+                <p class="text-muted mb-6">
+                    No services configured yet. Add your first service to start monitoring.
+                </p>
+                <div class="flex gap-4 justify-center">
+                    <a href="/services/add" class="btn btn-primary">Add Service</a>
+                    <a href="/services/discover" class="btn btn-secondary">Auto-Discover</a>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+
+    <!-- Recent Alerts -->
+    {{if .RecentAlerts}}
+    <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-4">Recent Alerts</h2>
+        <div class="card">
+            {{range .RecentAlerts}}
+            <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-{{.Severity}}"></div>
+                    <div>
+                        <div class="font-medium">{{.Title}}</div>
+                        <div class="text-sm text-muted">{{.ServiceName}} - {{timeAgo .CreatedAt}}</div>
+                    </div>
+                </div>
+                <div class="text-sm text-muted">
+                    {{.Severity | title}}
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+// Enhanced search and filtering
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('serviceSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const servicesGrid = document.getElementById('servicesGrid');
+
+    function filterServices() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+        const selectedStatus = statusFilter.value;
+        const cards = servicesGrid.querySelectorAll('.service-card');
+
+        cards.forEach(card => {
+            const name = card.querySelector('.service-name').textContent.toLowerCase();
+            const url = card.querySelector('.service-url').textContent.toLowerCase();
+            const category = card.dataset.category;
+            const type = card.dataset.serviceType;
+            const status = card.classList.contains('online') ? 'online' :
+                          card.classList.contains('offline') ? 'offline' :
+                          card.classList.contains('warning') ? 'warning' :
+                          card.classList.contains('maintenance') ? 'maintenance' : '';
+
+            const matchesSearch = name.includes(searchTerm) ||
+                                url.includes(searchTerm) ||
+                                type.toLowerCase().includes(searchTerm);
+            const matchesCategory = !selectedCategory || category === selectedCategory;
+            const matchesStatus = !selectedStatus || status === selectedStatus;
+
+            if (matchesSearch && matchesCategory && matchesStatus) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Update grid layout
+        const visibleCards = servicesGrid.querySelectorAll('.service-card:not([style*="display: none"])');
+        if (visibleCards.length === 0) {
+            servicesGrid.innerHTML = `
+                <div class="col-span-full card text-center py-8">
+                    <div class="text-4xl mb-4">🔍</div>
+                    <h3 class="text-lg font-semibold mb-2">No services found</h3>
+                    <p class="text-muted">Try adjusting your search criteria.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', filterServices);
+    categoryFilter.addEventListener('change', filterServices);
+    statusFilter.addEventListener('change', filterServices);
+
+    // Auto-refresh services every 30 seconds
+    setInterval(() => {
+        if (window.casdash && window.casdash.websocket &&
+            window.casdash.websocket.readyState !== WebSocket.OPEN) {
+            // Only refresh if WebSocket is not connected
+            location.reload();
+        }
+    }, 30000);
+});
+</script>
+{{end}}

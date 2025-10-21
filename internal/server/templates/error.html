@@ -1,0 +1,102 @@
+{{define "title"}}Error {{.StatusCode}} - CasDash{{end}}
+
+{{define "content"}}
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="max-w-lg w-full text-center">
+        <!-- Error Code -->
+        <div class="text-8xl font-bold text-primary mb-4">
+            {{.StatusCode}}
+        </div>
+
+        <!-- Error Icon -->
+        <div class="text-6xl mb-6">
+            {{if eq .StatusCode 404}}
+                🔍
+            {{else if eq .StatusCode 403}}
+                🔒
+            {{else if eq .StatusCode 500}}
+                ⚠️
+            {{else}}
+                ❌
+            {{end}}
+        </div>
+
+        <!-- Error Message -->
+        <h1 class="text-3xl font-bold mb-4">
+            {{if eq .StatusCode 404}}
+                Page Not Found
+            {{else if eq .StatusCode 403}}
+                Access Denied
+            {{else if eq .StatusCode 500}}
+                Internal Server Error
+            {{else}}
+                Something Went Wrong
+            {{end}}
+        </h1>
+
+        <p class="text-lg text-muted mb-8">
+            {{if .Error}}
+                {{.Error}}
+            {{else if eq .StatusCode 404}}
+                The page you're looking for doesn't exist or has been moved.
+            {{else if eq .StatusCode 403}}
+                You don't have permission to access this resource.
+            {{else if eq .StatusCode 500}}
+                An unexpected error occurred. Our team has been notified.
+            {{else}}
+                An error occurred while processing your request.
+            {{end}}
+        </p>
+
+        <!-- Actions -->
+        <div class="flex gap-4 justify-center">
+            <a href="/" class="btn btn-primary">
+                🏠 Go Home
+            </a>
+            <button onclick="history.back()" class="btn btn-secondary">
+                ← Go Back
+            </button>
+        </div>
+
+        <!-- Additional Help -->
+        <div class="mt-12 text-sm text-muted">
+            <p>If you believe this is an error, please contact support.</p>
+            <p class="mt-2">
+                <a href="/support" class="text-primary hover:text-secondary">
+                    Get Help
+                </a>
+                ·
+                <a href="/docs" class="text-primary hover:text-secondary">
+                    Documentation
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .min-h-screen {
+        min-height: 100vh;
+    }
+
+    .items-center {
+        align-items: center;
+    }
+
+    .justify-center {
+        justify-content: center;
+    }
+
+    .max-w-lg {
+        max-width: 32rem;
+    }
+
+    .w-full {
+        width: 100%;
+    }
+
+    .gap-4 {
+        gap: 1rem;
+    }
+</style>
+{{end}}

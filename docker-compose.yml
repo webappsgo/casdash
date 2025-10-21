@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  casdash:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "64321:64321"
+    volumes:
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # For Docker discovery
+    environment:
+      # System Configuration
+      - CASDASH_MODE=enterprise
+      - CASDASH_DB_TYPE=sqlite
+      - CASDASH_DB_PATH=/data/casdash.db
+      - CASDASH_MULTIUSER=false
+      - CASDASH_REGISTRATION=disabled
+
+      # Discovery Configuration
+      - CASDASH_DISCOVERY_ENABLED=true
+      - CASDASH_DISCOVERY_INTERVAL=24h
+      - CASDASH_DISCOVERY_NETWORKS=auto-detect
+      - CASDASH_DISCOVERY_PRIVILEGED=true
+
+      # Debug
+      - CASDASH_DEBUG=false
+    networks:
+      - casdash-network
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW  # For ICMP ping
+      - NET_ADMIN  # For network discovery
+    healthcheck:
+      test: ["CMD", "./casdash", "--help"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL for testing (optional)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=casdash
+      - POSTGRES_USER=casdash
+      - POSTGRES_PASSWORD=casdash_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - casdash-network
+    profiles:
+      - postgres
+
+  # MySQL for testing (optional)
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=casdash
+      - MYSQL_USER=casdash
+      - MYSQL_PASSWORD=casdash_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - casdash-network
+    profiles:
+      - mysql
+
+  # Development tools container
+  dev-tools:
+    image: golang:1.21-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - go_modules:/go/pkg/mod
+    environment:
+      - CGO_ENABLED=1
+    command: tail -f /dev/null
+    networks:
+      - casdash-network
+    profiles:
+      - dev
+
+networks:
+  casdash-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mysql_data:
+  go_modules:
